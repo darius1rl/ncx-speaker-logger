@@ -1,4 +1,4 @@
-# NosTale Discord Logger ![speaker image](/img/speaker)
+# NosTale Discord Logger ![speaker image](/img/speaker.png)
 
 A standalone packet Logger for **NosTale** that captures trade chat and item links in real time and forwards them to a Discord channel via webhook.
 
