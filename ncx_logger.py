@@ -224,10 +224,6 @@ def log_packet(data: str):
 
 
 def is_duplicate(data: str) -> bool:
-    """
-    Returns True if this exact packet string was already processed
-    within the last 0.5 seconds, indicating a TCP retransmit duplicate.
-    """
     global _last_packet_str, _last_packet_time
     now = time.monotonic()
     if data == _last_packet_str and (now - _last_packet_time) < 0.5:
@@ -251,7 +247,7 @@ def discord_post(embed: dict, webhook_url: str = None):
 
 def send_timespace_alert(map_id: int):
     embed = {
-        "title": "🖤🪽 Es hat sich ein Timespace in Akt 6 Geöffnet!",
+        "title": "🖤🪽 A Timespace opened in Act 6!",
         "color": 0x000000,
         "image": {"url": f"https://itempicker.atlagaming.eu/api/maps/minimap/{map_id}"},
         "footer": {"text": timestamp()}
@@ -259,15 +255,15 @@ def send_timespace_alert(map_id: int):
     try:
         r = requests.post(TS_WEBHOOK_URL, json={"embeds": [embed]}, timeout=5)
         r.raise_for_status()
-        print(f"[Timespace] Akt 6 TS | Map {map_id}")
+        print(f"[Timespace] Act 6 TS | Map {map_id}")
     except Exception as e:
         print(f"[TS Discord FAIL] {e}")
 
 
 def send_timespace_countdown_alert(map_id: int, minutes: int):
     embed = {
-        "title": "⏰ Timespace Ankündigung",
-        "description": f"In **{minutes} Minuten** öffnet sich ein Timespace in Akt 6",
+        "title": "⏰ Timespace Announcement",
+        "description": f"Act 6 Timespace is opening in **{minutes} Minutes**",
         "color": 0x2B2B2B,
         "image": {"url": f"https://itempicker.atlagaming.eu/api/maps/minimap/{map_id}"},
         "footer": {"text": timestamp()}
@@ -340,7 +336,6 @@ def parse_sayitemt(packet: str):
 def parse_shell(shell_str: str, effect_table: dict):
     """
     Parse an equipment shell string: category.effect_id.value.upgrade
-    e.g. '1.16.40.-2'
     """
     try:
         parts = shell_str.split(".")
@@ -525,10 +520,10 @@ def parse_cardholder_e_info(packet: str):
 # ── ELEMENT NAMES ─────────────────────────────────────────────────────────────
 
 ELEMENT_NAMES = {
-    1: "🔥 Feuer",
-    2: "💧 Wasser",
-    3: "☀️ Licht",
-    4: "🌑 Schatten",
+    1: "🔥 Fire",
+    2: "💧 Water",
+    3: "☀️ Light",
+    4: "🌑 Shadow",
 }
 
 def element_name(element_id: int) -> str:
@@ -571,9 +566,9 @@ def send_item(player, item_name, item_id, message, rarity=None, upgrade=0, champ
     if upgrade > 0:
         fields.append({"name": "Upgrade", "value": f"+{upgrade}", "inline": True})
     if champion_level > 0:
-        fields.append({"name": "Heldenlevel", "value": str(champion_level), "inline": True})
+        fields.append({"name": "C-Lvl", "value": str(champion_level), "inline": True})
     if shells:
-        fields.append({"name": "Muschel Effekte", "value": shell_text(shells), "inline": False})
+        fields.append({"name": "Shell Effects", "value": shell_text(shells), "inline": False})
     fields.append({"name": "Item ID", "value": str(item_id), "inline": False})
     embed = {
         "title": f"🛒 {player}",
@@ -590,13 +585,13 @@ def send_item(player, item_name, item_id, message, rarity=None, upgrade=0, champ
 def send_fairy(player, item_name, item_id, message, element, fairy_pct, upgrade, shells=None):
     cleaned_message = str(message).replace("|", " ").replace("{%s}", f"**{item_name}**")[:4000]
     fields = [
-        {"name": "Fee",     "value": str(item_name),        "inline": False},
+        {"name": "Fairy",     "value": str(item_name),        "inline": False},
         {"name": "Element", "value": element_name(element), "inline": True},
-        {"name": "Fee %",   "value": f"{fairy_pct}%",       "inline": True},
+        {"name": "%",   "value": f"{fairy_pct}%",       "inline": True},
         {"name": "Upgrade", "value": f"+{upgrade}",         "inline": True},
     ]
     if shells:
-        fields.append({"name": "Muschel Effekte", "value": shell_text(shells), "inline": False})
+        fields.append({"name": "Shell Effects", "value": shell_text(shells), "inline": False})
     fields.append({"name": "Item ID", "value": str(item_id), "inline": False})
     embed = {
         "title": f"🧚 {player}",
@@ -613,11 +608,11 @@ def send_fairy(player, item_name, item_id, message, element, fairy_pct, upgrade,
 def send_specialist(player, item_name, item_id, message, sp):
     cleaned_message = str(message).replace("|", " ").replace("{%s}", f"**{item_name}**")[:4000]
     fields = [
-        {"name": "Spezialkarte", "value": str(item_name),         "inline": False},
+        {"name": "Specialist", "value": str(item_name),         "inline": False},
         {"name": "Joblevel",     "value": str(sp["joblevel"]),    "inline": True},
         {"name": "Upgrade",      "value": f"+{sp['upgrade']}",    "inline": True},
-        {"name": "Perfektion",   "value": f"{sp['perfection']}", "inline": True},
-        {"name": "Angriff / Verteidigung / Element / HP",
+        {"name": "Perfection",   "value": f"{sp['perfection']}", "inline": True},
+        {"name": "Attack / Defence / Element / HP",
          "value": f"{sp['atk']} / {sp['def']} / {sp['ele']} / {sp['hp']}",
          "inline": False},
         {"name": "Item ID",      "value": str(item_id),           "inline": False},
@@ -795,17 +790,17 @@ def decrypt_server_packet(raw: bytes) -> list[str]:
 
 
 def run():
-    print(f"[Sniffer] Looking for {GAME_EXE}...")
+    print(f"[ncx-logger] Looking for {GAME_EXE}...")
     server_port = get_game_port()
 
     if not server_port:
-        print(f"[Sniffer] Could not find {GAME_EXE} running with an active connection.")
+        print(f"[ncx-logger] Could not find {GAME_EXE} running with an active connection.")
         print("          Make sure the game is open and logged in, then run this script again.")
         return
 
     divert_filter = f"tcp.SrcPort == {server_port} and inbound"
-    print(f"[Sniffer] Capturing inbound packets from port {server_port}...")
-    print("[Sniffer] Press Ctrl+C to stop.\n")
+    print(f"[ncx-logger] Capturing inbound packets from port {server_port}...")
+    print("[ncx-logger] Press Ctrl+C to stop.\n")
 
     with pydivert.WinDivert(divert_filter) as w:
         for packet in w:
